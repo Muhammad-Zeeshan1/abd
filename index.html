@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gulzar Forces Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --fg: #f0f0f5;
+            --muted: #6b7280;
+            --accent: #d4a853;
+            --accent-glow: #d4a85350;
+            --card: #12121a;
+            --border: #2a2a35;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans Pro', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            overflow-x: hidden;
+        }
+
+        .font-display {
+            font-family: 'Bebas Neue', sans-serif;
+        }
+
+        /* Intro Page */
+        #intro-page {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        #intro-page.hidden {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+
+        .intro-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url('https://z-cdn-media.chatglm.cn/files/36c54964-f643-4d38-9d92-4647160d0a61.png?auth_key=1873508190-c7973e643c4d436d865e9bd5d7c260ed-0-9ee4d7e55aff951575db10a941791538');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.6);
+        }
+
+        .intro-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(10,10,15,0.7) 0%, rgba(10,10,15,0.4) 100%);
+        }
+
+        .intro-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            animation: fadeInUp 1s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Main Page */
+        #main-page {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #main-page.visible { opacity: 1; }
+
+        /* Rain Canvas */
+        #rain-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Balls - Now 4 colorful balls */
+        .ball {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.8;
+            filter: blur(0.5px);
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+
+        /* Content */
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Cards */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(18,18,26,0.9) 0%, rgba(18,18,26,0.7) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        /* College Items - Clickable */
+        .college-item {
+            cursor: pointer;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
+        }
+
+        .college-item:hover {
+            background: rgba(212, 168, 83, 0.1);
+            border-color: rgba(212, 168, 83, 0.3);
+            padding-left: 20px;
+        }
+
+        .college-item::after {
+            content: '→';
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            color: var(--accent);
+        }
+
+        .college-item:hover::after {
+            opacity: 1;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        /* Form Inputs */
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--fg);
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Scroll Reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #8b6914 100%);
+            color: var(--bg);
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(212, 168, 83, 0.1);
+        }
+
+        /* Admission List Item */
+        .admission-item {
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Intro Page -->
+    <div id="intro-page">
+        <div class="intro-bg"></div>
+        <div class="intro-overlay"></div>
+        <div class="intro-content">
+            <h1 class="font-display text-6xl md:text-8xl lg:text-9xl tracking-wider text-white mb-4">
+                THE KING AND THE HERO
+            </h1>
+            <div class="h-1 w-32 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mb-6"></div>
+            <p class="font-display text-4xl md:text-5xl lg:text-6xl tracking-widest" style="color: var(--accent);">
+                ABDULLAH SAJJAD
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Page -->
+    <div id="main-page">
+        <!-- Rain Canvas -->
+        <canvas id="rain-canvas"></canvas>
+
+        <!-- Content -->
+        <div class="content-wrapper">
+            
+            <!-- Header -->
+            <header class="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-4">
+                <nav class="max-w-7xl mx-auto glass-card px-4 md:px-6 py-3 flex items-center justify-between">
+                    <div class="font-display text-xl md:text-2xl tracking-wider" style="color: var(--accent);">
+                        GULZAR FORCES
+                    </div>
+                    <div class="flex items-center gap-2 md:gap-4">
+                        <!-- See Admissions Button -->
+                        <button id="viewAdmissionsBtn" class="btn-secondary text-xs md:text-sm">
+                            See Admissions
+                        </button>
+                        <button class="btn-primary text-xs md:text-sm hidden md:block">Enroll Now</button>
+                    </div>
+                </nav>
+            </header>
+
+            <!-- Hero Section -->
+            <section class="min-h-screen flex items-center justify-center px-6 pt-24">
+                <div class="text-center max-w-4xl mx-auto reveal">
+                    <p class="text-amber-400 text-lg tracking-widest mb-4">WELCOME TO EXCELLENCE</p>
+                    <h1 class="font-display text-5xl md:text-7xl lg:text-8xl tracking-wide mb-6">
+                        GULZAR FORCES ACADEMY
+                    </h1>
+                    <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+                        Shaping future leaders with discipline. Click on any college below to view details and apply for admission.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Colleges Section -->
+            <section id="colleges" class="py-20 px-6">
+                <div class="max-w-6xl mx-auto">
+                    <div class="text-center mb-16 reveal">
+                        <p class="text-amber-400 tracking-widest mb-2">SELECT YOUR PATH</p>
+                        <h2 class="font-display text-4xl md:text-5xl tracking-wide">AFFILIATED COLLEGES</h2>
+                        <p class="text-gray-500 mt-2 text-sm">Click on a college name to see details & admission form</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 reveal">
+                        <!-- College Card 1 -->
+                        <div class="glass-card p-6">
+                            <h3 class="font-display text-2xl tracking-wide mb-4 text-amber-300">ARMED FORCES WING</h3>
+                            <div class="space-y-2">
+                                <div class="college-item" data-college="pma">Pakistan Military Academy (PMA)</div>
+                                <div class="college-item" data-college="paf">Pakistan Air Force (PAF)</div>
+                                <div class="college-item" data-college="navy">Pakistan Navy Cadet College</div>
+                                <div class="college-item" data-college="issb">ISSB Selection Center</div>
+                            </div>
+                        </div>
+                        
+                        <!-- College Card 2 -->
+                        <div class="glass-card p-6">
+                            <h3 class="font-display text-2xl tracking-wide mb-4 text-amber-300">CADET COLLEGES</h3>
+                            <div class="space-y-2">
+                                <div class="college-item" data-college="hasanabdal">Cadet College Hasan Abdal</div>
+                                <div class="college-item" data-college="jhelum">Military College Jhelum</div>
+                                <div class="college-item" data-college="kohat">Cadet College Kohat</div>
+                                <div class="college-item" data-college="murree">Military College Murree</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Faculty Section -->
+            <section id="faculty" class="py-20 px-6">
+                <div class="max-w-6xl mx-auto">
+                    <div class="text-center mb-16 reveal">
+                        <p class="text-amber-400 tracking-widest mb-2">OUR EXPERTS</p>
+                        <h2 class="font-display text-4xl md:text-5xl tracking-wide">FACULTY MEMBERS</h2>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8 reveal">
+                        <div class="glass-card p-8 flex flex-col md:flex-row gap-6 border-t-4 border-amber-500">
+                            <div class="w-24 h-24 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-700/20 flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+                                <span class="text-4xl">👨‍🏫</span>
+                            </div>
+                            <div class="text-center md:text-left">
+                                <h3 class="font-display text-3xl tracking-wide mb-1">SIR SHAHID</h3>
+                                <p class="text-amber-400 mb-3">Senior Instructor</p>
+                                <p class="text-gray-400 text-sm">Expert in ISSB psychology tests with 15+ years of experience.</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-8 flex flex-col md:flex-row gap-6 border-t-4 border-blue-500">
+                            <div class="w-24 h-24 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-700/20 flex items-center justify-center flex-shrink-0 mx-auto md:mx-0">
+                                <span class="text-4xl">💪</span>
+                            </div>
+                            <div class="text-center md:text-left">
+                                <h3 class="font-display text-3xl tracking-wide mb-1">SIR TALHA</h3>
+                                <p class="text-blue-400 mb-3">Physical Training Director</p>
+                                <p class="text-gray-400 text-sm">Specialist in military fitness standards and endurance training.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="py-8 px-6 border-t border-gray-800">
+                <div class="max-w-6xl mx-auto text-center text-gray-500 text-sm">
+                    <p>© 2024 Gulzar Forces Academy. All rights reserved.</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- College Detail & Admission Form Modal -->
+    <div id="collegeModal" class="modal-overlay">
+        <div class="modal-content p-8">
+            <button id="closeCollegeModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            
+            <div id="modalContent">
+                <!-- Dynamic Content Goes Here -->
+            </div>
+            
+            <!-- Admission Form -->
+            <div class="mt-8 pt-6 border-t border-gray-700">
+                <h4 class="font-display text-2xl tracking-wide mb-4">Admission Form</h4>
+                <form id="admissionForm" class="space-y-4">
+                    <input type="hidden" id="selectedCollege" name="college">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Student Name</label>
+                        <input type="text" id="studentName" class="form-input" placeholder="Enter your name" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Father's Name</label>
+                        <input type="text" id="fatherName" class="form-input" placeholder="Enter father's name" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Phone Number</label>
+                        <input type="tel" id="phone" class="form-input" placeholder="03XX-XXXXXXX" required>
+                    </div>
+                    <button type="submit" class="btn-primary w-full mt-4">Submit Admission Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admissions List Modal -->
+    <div id="admissionsModal" class="modal-overlay">
+        <div class="modal-content p-8">
+            <button id="closeAdmissionsModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            
+            <h3 class="font-display text-3xl tracking-wide mb-6 text-center">Recent Admissions</h3>
+            
+            <div id="admissionListContainer" class="space-y-4 max-h-96 overflow-y-auto">
+                <!-- List items will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Store ---
+        // Start with some demo data
+        let admissions = [
+            { name: "Ali Raza", father: "Muhammad Akram", college: "Pakistan Military Academy (PMA)", time: "2 hours ago" },
+            { name: "Hassan Khan", father: "Kamal Khan", college: "Pakistan Air Force (PAF)", time: "5 hours ago" },
+            { name: "Usman Tariq", father: "Tariq Javed", college: "Cadet College Hasan Abdal", time: "1 day ago" }
+        ];
+
+        const collegeData = {
+            pma: {
+                title: "Pakistan Military Academy (PMA)",
+                desc: "Located in Kakul, Abbottabad. PMA is the premier training institution for future officers of the Pakistan Army. The training program focuses on leadership, tactical skills, and physical endurance."
+            },
+            paf: {
+                title: "Pakistan Air Force (PAF)",
+                desc: "Located in Risalpur. Trains future pilots and aeronautical engineers. Focuses on aviation sciences, flying training, and leadership development for the Air Force."
+            },
+            navy: {
+                title: "Pakistan Navy Cadet College",
+                desc: "Located in Manora, Karachi. Prepares cadets for naval operations, maritime strategy, and technical training for service in the Pakistan Navy."
+            },
+            issb: {
+                title: "ISSB Selection Center",
+                desc: "Centers located in Kohat, Gujranwala, Malir, and Quetta. A rigorous 4-day selection process evaluating psychological fitness, leadership potential, and physical endurance."
+            },
+            hasanabdal: {
+                title: "Cadet College Hasan Abdal",
+                desc: "One of the oldest and most prestigious cadet colleges in Pakistan, known for producing top military officers and leaders."
+            },
+            jhelum: {
+                title: "Military College Jhelum",
+                desc: "A renowned institution providing quality education and military training to young cadets from class 8th onwards."
+            },
+            kohat: {
+                title: "Cadet College Kohat",
+                desc: "Located in the scenic hills of Kohat, offering excellent academic and physical training programs."
+            },
+            murree: {
+                title: "Military College Murree",
+                desc: "Situated in the beautiful hills of Murree, providing high-quality education with a focus on character building."
+            }
+        };
+
+        // --- Initialization ---
+        let rainDrops = [];
+        let balls = [];
+        let rainCanvas, rainCtx;
+
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Page Transition
+        setTimeout(() => {
+            const introPage = document.getElementById('intro-page');
+            const mainPage = document.getElementById('main-page');
+            
+            introPage.classList.add('hidden');
+            
+            setTimeout(() => {
+                introPage.style.display = 'none';
+                mainPage.classList.add('visible');
+                
+                initRain();
+                initBalls();
+                initEventListeners();
+            }, 800);
+        }, 3000);
+
+        // --- Rain Effect ---
+        function initRain() {
+            if (prefersReducedMotion) return;
+            rainCanvas = document.getElementById('rain-canvas');
+            rainCtx = rainCanvas.getContext('2d');
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            for (let i = 0; i < 80; i++) {
+                rainDrops.push({
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    length: Math.random() * 15 + 5,
+                    speed: Math.random() * 4 + 2,
+                    opacity: Math.random() * 0.25 + 0.05
+                });
+            }
+            animateRain();
+        }
+
+        function resizeCanvas() {
+            rainCanvas.width = window.innerWidth;
+            rainCanvas.height = window.innerHeight;
+        }
+
+        function animateRain() {
+            if (!rainCtx) return;
+            rainCtx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+            
+            rainDrops.forEach(drop => {
+                rainCtx.beginPath();
+                rainCtx.moveTo(drop.x, drop.y);
+                rainCtx.lineTo(drop.x, drop.y + drop.length);
+                rainCtx.strokeStyle = `rgba(212, 168, 83, ${drop.opacity})`;
+                rainCtx.lineWidth = 1;
+                rainCtx.stroke();
+                
+                drop.y += drop.speed;
+                if (drop.y > rainCanvas.height) {
+                    drop.y = -drop.length;
+                    drop.x = Math.random() * rainCanvas.width;
+                }
+            });
+            requestAnimationFrame(animateRain);
+        }
+
+        // --- 4 Colorful Balls ---
+        function initBalls() {
+            if (prefersReducedMotion) return;
+            
+            // 4 specific colors
+            const ballColors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502']; 
+
+            for (let i = 0; i < 4; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'ball';
+                
+                // Random size between 20 and 45 pixels
+                const size = Math.floor(Math.random() * 25) + 20;
+                
+                ball.style.width = size + 'px';
+                ball.style.height = size + 'px';
+                ball.style.background = `radial-gradient(circle at 30% 30%, #ffffff, ${ballColors[i]})`;
+                
+                document.body.appendChild(ball);
+                
+                balls.push({
+                    el: ball,
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    vx: (Math.random() - 0.5) * 3,
+                    vy: (Math.random() - 0.5) * 3,
+                    size: size
+                });
+            }
+            animateBalls();
+        }
+
+        function animateBalls() {
+            balls.forEach(b => {
+                b.x += b.vx;
+                b.y += b.vy;
+                
+                if (b.x < 0 || b.x > window.innerWidth - b.size) b.vx *= -1;
+                if (b.y < 0 || b.y > window.innerHeight - b.size) b.vy *= -1;
+                
+                b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
+            });
+            requestAnimationFrame(animateBalls);
+        }
+
+        // --- Event Listeners ---
+        function initEventListeners() {
+            // Open College Modal
+            document.querySelectorAll('.college-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const key = item.getAttribute('data-college');
+                    const data = collegeData[key];
+                    
+                    document.getElementById('selectedCollege').value = data.title;
+                    document.getElementById('modalContent').innerHTML = `
+                        <h3 class="font-display text-3xl tracking-wide text-amber-400 mb-4">${data.title}</h3>
+                        <p class="text-gray-300 leading-relaxed">${data.desc}</p>
+                    `;
+                    
+                    document.getElementById('collegeModal').classList.add('active');
+                });
+            });
+
+            // Close Modals
+            document.getElementById('closeCollegeModal').addEventListener('click', () => {
+                document.getElementById('collegeModal').classList.remove('active');
+            });
+
+            document.getElementById('viewAdmissionsBtn').addEventListener('click', () => {
+                renderAdmissionList();
+                document.getElementById('admissionsModal').classList.add('active');
+            });
+
+            document.getElementById('closeAdmissionsModal').addEventListener('click', () => {
+                document.getElementById('admissionsModal').classList.remove('active');
+            });
+
+            // Close modal on outside click
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+            });
+
+            // Handle Form Submission
+            document.getElementById('admissionForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const newAdmission = {
+                    name: document.getElementById('studentName').value,
+                    father: document.getElementById('fatherName').value,
+                    college: document.getElementById('selectedCollege').value,
+                    time: "Just now"
+                };
+
+                admissions.unshift(newAdmission); // Add to top of list
+                
+                // Reset form and close modal
+                e.target.reset();
+                document.getElementById('collegeModal').classList.remove('active');
+                
+                // Show success alert
+                alert(`Thank you, ${newAdmission.name}! Your admission request for ${newAdmission.college} has been received.`);
+            });
+        }
+
+        function renderAdmissionList() {
+            const container = document.getElementById('admissionListContainer');
+            
+            if (admissions.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">No admissions yet.</p>';
+                return;
+            }
+
+            container.innerHTML = admissions.map(a => `
+                <div class="admission-item">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-white">${a.name}</h4>
+                            <p class="text-xs text-gray-400">S/O ${a.father}</p>
+                            <p class="text-sm text-amber-400 mt-1">${a.college}</p>
+                        </div>
+                        <span class="text-xs text-gray-500">${a.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Scroll Reveal Observer
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    </script>
+</body>
+</html>
